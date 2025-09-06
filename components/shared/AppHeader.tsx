@@ -37,7 +37,6 @@ export default function AppHeader({ className, children }: AppHeaderProps) {
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        <span>{userMapping[currentUser]}</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
