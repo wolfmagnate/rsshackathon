@@ -6,38 +6,7 @@ import { Download, FileText, BookOpen, X } from "lucide-react"
 import { useState } from "react"
 import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
-
-// サンプルデータ
-const examData = {
-  courseName: "データベース設計論",
-  years: [
-    {
-      year: 2023,
-      materials: [
-        { type: "exam", semester: "前期", author: "tanaka_123", id: 1 },
-        { type: "solution", semester: "前期", author: "sato_456", id: 2 },
-        { type: "exam", semester: "後期", author: "yamada_789", id: 3 },
-        { type: "solution", semester: "後期", author: "tanaka_123", id: 4 },
-      ],
-    },
-    {
-      year: 2022,
-      materials: [
-        { type: "exam", semester: "前期", author: "suzuki_321", id: 5 },
-        { type: "solution", semester: "前期", author: "watanabe_654", id: 6 },
-        { type: "exam", semester: "後期", author: "ito_987", id: 7 },
-      ],
-    },
-    {
-      year: 2021,
-      materials: [{ type: "exam", semester: "前期", author: "kobayashi_111", id: 8 }],
-    },
-    {
-      year: 2020,
-      materials: [],
-    },
-  ],
-}
+import { allExamsData } from "@/lib/mock-data"
 
 function GratitudePopup({
   isOpen,
@@ -153,6 +122,9 @@ function GratitudePopup({
 }
 
 export default function Page({ params }: { params: { classId: string } }) {
+  const { classId } = params
+  const examData = allExamsData[classId as keyof typeof allExamsData]
+
   const [popupState, setPopupState] = useState<{
     isOpen: boolean
     materialId: number | null
@@ -182,6 +154,22 @@ export default function Page({ params }: { params: { classId: string } }) {
       materialId: null,
       authorName: "",
     })
+  }
+
+  if (!examData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader className="bg-white border-gray-200">
+          <h1 className="text-lg font-bold text-center text-balance text-gray-900">
+            エラー
+          </h1>
+        </AppHeader>
+        <main className="px-4 py-6 max-w-md mx-auto text-center">
+          <p>指定された授業の情報が見つかりませんでした。</p>
+        </main>
+        <AppFooter />
+      </div>
+    )
   }
 
   return (
