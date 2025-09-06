@@ -6,7 +6,8 @@ import { Download, FileText, BookOpen, X } from "lucide-react"
 import { useState } from "react"
 import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
-import { allExamsData } from "@/lib/mock-data"
+import { allExamsData, Material } from "@/lib/mock-data"
+import { useAppContext } from "@/context/AppContext"
 
 function GratitudePopup({
   isOpen,
@@ -17,7 +18,7 @@ function GratitudePopup({
   isOpen: boolean
   onClose: () => void
   authorName: string
-  onDownload: () => void
+  onDownload: (emoji: string, message: string) => void
 }) {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("")
   const [message, setMessage] = useState("ありがとう！")
@@ -32,7 +33,7 @@ function GratitudePopup({
   }
 
   const handleDownload = () => {
-    onDownload()
+    onDownload(selectedEmoji, message)
     onClose()
   }
 
@@ -124,35 +125,49 @@ function GratitudePopup({
 export default function Page({ params }: { params: { classId: string } }) {
   const { classId } = params
   const examData = allExamsData[classId as keyof typeof allExamsData]
+  const { currentUser, sendThankYou } = useAppContext()
 
   const [popupState, setPopupState] = useState<{
     isOpen: boolean
-    materialId: number | null
-    authorName: string
+    material: Material | null
+    year: number | null
   }>({
     isOpen: false,
-    materialId: null,
-    authorName: "",
+    material: null,
+    year: null,
   })
 
-  const handleDownload = (id: number, authorName: string) => {
+  const handleOpenPopup = (material: Material, year: number) => {
+    if (currentUser === 'receiver') {
+        alert("感謝を伝えるには、「感謝を伝える人」アカウントに切り替えてください。");
+        return;
+    }
     setPopupState({
       isOpen: true,
-      materialId: id,
-      authorName,
+      material: material,
+      year: year,
     })
   }
 
-  const handleActualDownload = () => {
-    console.log(`Download item ${popupState.materialId}`)
-    // ここで実際のダウンロード処理を実行
+  const handleActualDownload = (emoji: string, message: string) => {
+    if (!popupState.material || !popupState.year || !examData) return
+
+    console.log(`Download item ${popupState.material.id}`)
+    
+    sendThankYou({
+        receiverName: popupState.material.author,
+        courseName: examData.courseName,
+        examType: `${popupState.year}年 ${popupState.material.semester} ${popupState.material.type === "exam" ? "過去問" : "解答解説"}`,
+        emoji,
+        message,
+    })
   }
 
   const handleClosePopup = () => {
     setPopupState({
       isOpen: false,
-      materialId: null,
-      authorName: "",
+      material: null,
+      year: null,
     })
   }
 
@@ -174,30 +189,24 @@ export default function Page({ params }: { params: { classId: string } }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ヘッダー */}
       <AppHeader className="bg-white border-gray-200">
         <h1 className="text-lg font-bold text-center text-balance text-gray-900">過去問解答解説検索</h1>
       </AppHeader>
 
-      {/* メインコンテンツ */}
       <main className="px-4 py-6 max-w-md mx-auto">
-        {/* 授業名 */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-foreground mb-2 text-balance">{examData.courseName}</h2>
           <div className="h-1 w-16 bg-green-500 rounded-full"></div>
         </div>
 
-        {/* 年度別セクション */}
         <div className="space-y-6">
           {examData.years.map((yearData) => (
             <section key={yearData.year} className="space-y-3">
-              {/* 年度ヘッダー */}
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold text-foreground">{yearData.year}年度</h3>
                 <div className="flex-1 h-px bg-border"></div>
               </div>
 
-              {/* 資料カード */}
               {yearData.materials.length > 0 ? (
                 <div className="space-y-2">
                   {yearData.materials.map((material) => (
@@ -223,7 +232,7 @@ export default function Page({ params }: { params: { classId: string } }) {
                           </div>
                           <Button
                             size="default"
-                            onClick={() => handleDownload(material.id, material.author)}
+                            onClick={() => handleOpenPopup(material, yearData.year)}
                             className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0 min-w-[80px] h-10"
                           >
                             <Download className="h-4 w-4 mr-2" />
@@ -247,7 +256,7 @@ export default function Page({ params }: { params: { classId: string } }) {
       <GratitudePopup
         isOpen={popupState.isOpen}
         onClose={handleClosePopup}
-        authorName={popupState.authorName}
+        authorName={popupState.material?.author || ""}
         onDownload={handleActualDownload}
       />
       <AppFooter />

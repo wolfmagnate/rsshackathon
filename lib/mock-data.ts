@@ -1,4 +1,25 @@
-export const allExamsData = {
+export interface Material {
+  type: "exam" | "solution";
+  semester: "前期" | "後期";
+  author: string;
+  id: number;
+}
+
+export interface YearData {
+  year: number;
+  materials: Material[];
+}
+
+export interface ExamData {
+  courseName: string;
+  years: YearData[];
+}
+
+export interface AllExamsData {
+  [classId: string]: ExamData;
+}
+
+export const allExamsData: AllExamsData = {
   "1": {
     courseName: "微分積分学I",
     years: [

@@ -1,74 +1,11 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, Sparkles } from "lucide-react"
+import { Bell, Sparkles, UserCheck } from "lucide-react"
 import { useState, useEffect } from "react"
 import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
-
-// サンプル通知データ
-const notificationsData = [
-  {
-    id: 1,
-    message: "ありがとう！",
-    emoji: "🙏",
-    senderName: "yamada_789",
-    courseName: "データベース設計論",
-    examType: "2023年前期過去問",
-    timestamp: "2時間前",
-    isNew: true,
-  },
-  {
-    id: 2,
-    message: "本当に助かりました！",
-    emoji: "😊",
-    senderName: "sato_456",
-    courseName: "アルゴリズム論",
-    examType: "2023年後期解答解説",
-    timestamp: "5時間前",
-    isNew: true,
-  },
-  {
-    id: 3,
-    message: "感謝です！",
-    emoji: "❤️",
-    senderName: "tanaka_123",
-    courseName: "データベース設計論",
-    examType: "2022年前期過去問",
-    timestamp: "1日前",
-    isNew: false,
-  },
-  {
-    id: 4,
-    message: "ありがとうございます！",
-    emoji: "🎉",
-    senderName: "suzuki_321",
-    courseName: "機械学習基礎",
-    examType: "2023年前期過去問",
-    timestamp: "2日前",
-    isNew: false,
-  },
-  {
-    id: 5,
-    message: "とても参考になりました！",
-    emoji: "✨",
-    senderName: "watanabe_654",
-    courseName: "データベース設計論",
-    examType: "2023年前期解答解説",
-    timestamp: "3日前",
-    isNew: false,
-  },
-  {
-    id: 6,
-    message: "助かりました！",
-    emoji: "👍",
-    senderName: "ito_987",
-    courseName: "統計学入門",
-    examType: "2022年後期過去問",
-    timestamp: "1週間前",
-    isNew: false,
-  },
-]
+import { useAppContext, Notification } from "@/context/AppContext"
 
 function AnimatedEmoji({ emoji, isAnimating, isNew }: { emoji: string; isAnimating: boolean; isNew?: boolean }) {
   return (
@@ -105,7 +42,7 @@ function NotificationCard({
   notification,
   onEmojiClick,
 }: {
-  notification: (typeof notificationsData)[0]
+  notification: Notification
   onEmojiClick: (id: number) => void
 }) {
   const [isAnimating, setIsAnimating] = useState(false)
@@ -141,7 +78,6 @@ function NotificationCard({
             <AnimatedEmoji emoji={notification.emoji} isAnimating={isAnimating} isNew={notification.isNew} />
           </button>
 
-          {/* 通知内容 */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-2">
               <p
@@ -174,24 +110,52 @@ function NotificationCard({
 }
 
 export default function Page() {
+  const { currentUser, notifications, markAsRead } = useAppContext()
   const [animatingId, setAnimatingId] = useState<number | null>(null)
-  const [newNotificationCount, setNewNotificationCount] = useState(notificationsData.filter((n) => n.isNew).length)
+
+  const receivedNotifications = notifications.filter(n => n.receiverName !== 'user_giver');
+  
+  const newNotificationCount = receivedNotifications.filter((n) => n.isNew).length
+
+  useEffect(() => {
+    if (currentUser === 'receiver') {
+        const timer = setTimeout(() => {
+            const authorNames = ["yamada_789", "sato_456", "tanaka_123", "suzuki_321", "watanabe_654", "ito_987", "kobayashi_111", "kato_222", "yoshida_333", "sasaki_444"];
+            authorNames.forEach(name => markAsRead(name));
+        }, 2000);
+        return () => clearTimeout(timer);
+    }
+  }, [currentUser, markAsRead, notifications]);
+
 
   const handleEmojiClick = (id: number) => {
     setAnimatingId(id)
-    // 実際のアプリでは、ここで「いいね」や「既読」のAPIを呼ぶ
     console.log(`Emoji clicked for notification ${id}`)
   }
 
-  useEffect(() => {
-    // 新しい通知のカウントを更新
-    const count = notificationsData.filter((n) => n.isNew).length
-    setNewNotificationCount(count)
-  }, [])
+  if (currentUser === 'giver') {
+      return (
+          <div className="min-h-screen bg-background flex flex-col">
+              <AppHeader>
+                  <div className="flex items-center justify-center gap-2">
+                      <Bell className={`h-5 w-5 text-primary`} />
+                      <h1 className="text-lg font-bold text-foreground text-balance">感謝の通知</h1>
+                  </div>
+              </AppHeader>
+              <main className="flex-1 px-4 py-6 max-w-md mx-auto pb-20 flex flex-col items-center justify-center text-center">
+                  <UserCheck className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h2 className="text-xl font-semibold text-foreground mb-2">通知はありません</h2>
+                  <p className="text-muted-foreground text-balance">
+                      「感謝される人」アカウントに切り替えると、受け取った感謝の通知を確認できます。
+                  </p>
+              </main>
+              <AppFooter />
+          </div>
+      )
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ヘッダー */}
       <AppHeader>
         <div className="flex items-center justify-center gap-2">
           <Bell className={`h-5 w-5 text-primary ${newNotificationCount > 0 ? "animate-wiggle" : ""}`} />
@@ -204,7 +168,6 @@ export default function Page() {
         </div>
       </AppHeader>
 
-      {/* メインコンテンツ */}
       <main className="flex-1 px-4 py-6 max-w-md mx-auto pb-20">
         <div className="mb-6 text-center">
           <div className="inline-flex items-center gap-2 bg-primary px-4 py-2 rounded-full mb-3">
@@ -216,12 +179,17 @@ export default function Page() {
           </p>
         </div>
 
-        {/* 通知リスト */}
-        <div className="space-y-3 mb-8">
-          {notificationsData.map((notification) => (
-            <NotificationCard key={notification.id} notification={notification} onEmojiClick={handleEmojiClick} />
-          ))}
-        </div>
+        {receivedNotifications.length > 0 ? (
+            <div className="space-y-3 mb-8">
+            {receivedNotifications.slice().reverse().map((notification) => (
+                <NotificationCard key={notification.id} notification={notification} onEmojiClick={handleEmojiClick} />
+            ))}
+            </div>
+        ) : (
+            <div className="text-center py-10">
+                <p className="text-muted-foreground">まだ感謝の通知はありません。</p>
+            </div>
+        )}
       </main>
 
       <AppFooter />
