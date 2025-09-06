@@ -41,7 +41,7 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
-              <span>Welcome!</span>
+              <span>RSS Hackathonへようこそ！！！</span>
             </CardTitle>
             <CardDescription>This is a sample UI using shadcn/ui and Lucide.</CardDescription>
           </CardHeader>
