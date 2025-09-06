@@ -21,7 +21,16 @@ function GratitudePopup({
   onDownload: (emoji: string, message: string) => void
 }) {
   const [selectedEmoji, setSelectedEmoji] = useState<string>("")
-  const [message, setMessage] = useState("ありがとう！")
+  const gratitudeTemplates = [
+    "ありがとう！",
+    "本当に助かります！",
+    "感謝です！",
+    "ありがとうございます！",
+    "大切に使わせていただきます！",
+  ]
+  const [message, setMessage] = useState(
+    () => gratitudeTemplates[Math.floor(Math.random() * gratitudeTemplates.length)]
+  )
   const [animatingEmoji, setAnimatingEmoji] = useState<string>("")
 
   const emojis = ["👍", "❤️", "🙏", "😊", "🎉", "✨"]
@@ -94,6 +103,7 @@ function GratitudePopup({
               onChange={(e) => setMessage(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               rows={2}
+              maxLength={30}
               placeholder="感謝のメッセージを入力..."
             />
           </div>
