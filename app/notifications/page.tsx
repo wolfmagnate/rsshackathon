@@ -1,11 +1,24 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, Sparkles, UserCheck } from "lucide-react"
+import { Bell, Sparkles, UserCheck, BellRing, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
 import { useAppContext, Notification } from "@/context/AppContext"
+import { Button } from "@/components/ui/button"
+
+// Base64をUint8Arrayに変換するヘルパー関数
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
 
 function AnimatedEmoji({ emoji, isAnimating, isNew }: { emoji: string; isAnimating: boolean; isNew?: boolean }) {
   return (
@@ -50,8 +63,6 @@ function NotificationCard({
   const handleEmojiClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click event
     setIsAnimating(true)
-    // Optional: callback for emoji-specific action if needed in the future
-    // onEmojiClick(notification.id) 
     setTimeout(() => setIsAnimating(false), 1000)
   }
 
@@ -115,6 +126,58 @@ function NotificationCard({
 
 export default function Page() {
   const { currentUser, notifications, markAsRead } = useAppContext()
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isSubscriptionLoading, setSubscriptionLoading] = useState(true)
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        reg.pushManager.getSubscription().then(sub => {
+          if (sub) {
+            setIsSubscribed(true)
+          }
+          setSubscriptionLoading(false)
+        })
+      })
+    } else {
+      setSubscriptionLoading(false)
+    }
+  }, [])
+
+  const subscribeToNotifications = async () => {
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapidPublicKey) {
+      alert("VAPID公開鍵が設定されていません。")
+      return
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      })
+      setIsSubscribed(true)
+      alert("Push通知を購読しました！")
+    } catch (error) {
+      console.error("Failed to subscribe:", error)
+      alert("Push通知の購読に失敗しました。ブラウザの通知設定を確認してください。")
+    }
+  }
+
+  const unsubscribeFromNotifications = async () => {
+    try {
+      const registration = await navigator.serviceWorker.ready
+      const subscription = await registration.pushManager.getSubscription()
+      if (subscription) {
+        await subscription.unsubscribe()
+      }
+      setIsSubscribed(false)
+      alert("Push通知の購読を解除しました。")
+    } catch (error) {
+      console.error("Failed to unsubscribe:", error)
+    }
+  }
   
   const receivedNotifications = notifications.filter(n => n.receiverName !== 'user_giver');
   const newNotificationCount = receivedNotifications.filter((n) => n.isNew).length
@@ -154,6 +217,29 @@ export default function Page() {
       </AppHeader>
 
       <main className="flex-1 px-4 py-6 max-w-md mx-auto pb-20">
+        <Card className="mb-6">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BellRing className="h-6 w-6 text-primary" />
+              <div>
+                <h3 className="font-semibold">通知設定</h3>
+                <p className="text-sm text-muted-foreground">新しい感謝を受け取った際に通知します</p>
+              </div>
+            </div>
+            {isSubscriptionLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Button
+                variant={isSubscribed ? "outline" : "default"}
+                size="sm"
+                onClick={isSubscribed ? unsubscribeFromNotifications : subscribeToNotifications}
+              >
+                {isSubscribed ? "購読解除" : "購読する"}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="mb-6 text-center">
           <div className="inline-flex items-center gap-2 bg-primary px-4 py-2 rounded-full mb-3">
             <Sparkles className="h-4 w-4 text-primary-foreground" />

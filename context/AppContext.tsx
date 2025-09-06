@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from "react"
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react"
 
 // Define types
 export type User = "giver" | "receiver"
@@ -55,6 +55,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isNew: true,
       },
   ])
+  const [pushedNotificationIds, setPushedNotificationIds] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const handlePushNotifications = async () => {
+      if (currentUser === 'receiver' && 'serviceWorker' in navigator && 'PushManager' in window) {
+        const newNotifications = notifications.filter(n => n.isNew && !pushedNotificationIds.has(n.id) && n.receiverName !== 'user_giver');
+        
+        if (newNotifications.length > 0) {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+
+          if (subscription) {
+            newNotifications.forEach(notification => {
+              const payload = {
+                title: `${notification.senderName}から感謝が届きました`,
+                body: `${notification.courseName} - ${notification.examType}に${notification.emoji}${notification.message}`,
+              };
+
+              fetch('/api/send-notification', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ subscription, payload }),
+              })
+              .then(response => {
+                if (response.ok) {
+                  setPushedNotificationIds(prev => new Set(prev).add(notification.id));
+                }
+              })
+              .catch(error => console.error('Error sending push notification:', error));
+            });
+          }
+        }
+      }
+    };
+
+    handlePushNotifications();
+  }, [currentUser, notifications, pushedNotificationIds]);
 
   const switchUser = (user: User) => {
     setCurrentUser(user)
