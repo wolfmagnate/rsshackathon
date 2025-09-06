@@ -22,7 +22,7 @@ interface AppContextState {
   switchUser: (user: User) => void
   notifications: Notification[]
   sendThankYou: (details: Omit<Notification, "id" | "timestamp" | "isNew" | "senderName">) => void
-  markAsRead: (receiver: string) => void
+  markAsRead: (id: number) => void
 }
 
 // Create Context
@@ -71,9 +71,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) => [...prev, newNotification])
   }
   
-  const markAsRead = (receiver: string) => {
+  const markAsRead = (id: number) => {
       setNotifications(prev => 
-          prev.map(n => n.receiverName === receiver ? { ...n, isNew: false } : n)
+          prev.map(n => n.id === id ? { ...n, isNew: false } : n)
       )
   }
 

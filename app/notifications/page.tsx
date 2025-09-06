@@ -40,97 +40,87 @@ function AnimatedEmoji({ emoji, isAnimating, isNew }: { emoji: string; isAnimati
 
 function NotificationCard({
   notification,
-  onEmojiClick,
+  onCardClick,
 }: {
   notification: Notification
-  onEmojiClick: (id: number) => void
+  onCardClick: (id: number) => void
 }) {
   const [isAnimating, setIsAnimating] = useState(false)
 
-  const handleEmojiClick = () => {
+  const handleEmojiClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click event
     setIsAnimating(true)
-    onEmojiClick(notification.id)
+    // Optional: callback for emoji-specific action if needed in the future
+    // onEmojiClick(notification.id) 
     setTimeout(() => setIsAnimating(false), 1000)
   }
 
   return (
-    <Card
-      className={`
-        hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary relative overflow-hidden
-        ${notification.isNew ? "animate-shimmer bg-gradient-to-r from-background via-primary/5 to-background bg-[length:200%_100%]" : ""}
-      `}
-      style={{
-        boxShadow: notification.isNew
-          ? "0 0 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-          : undefined,
-      }}
-    >
-      {notification.isNew && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-slide-shine"></div>
-      )}
+    <div onClick={() => onCardClick(notification.id)} className="cursor-pointer">
+      <Card
+        className={`
+          hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary relative overflow-hidden
+          ${notification.isNew ? "animate-shimmer bg-gradient-to-r from-background via-primary/5 to-background bg-[length:200%_100%]" : ""}
+        `}
+        style={{
+          boxShadow: notification.isNew
+            ? "0 0 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+            : undefined,
+        }}
+      >
+        {notification.isNew && (
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-slide-shine"></div>
+        )}
 
-      <CardContent className="px-4 py-1 relative z-10">
-        <div className="flex items-start gap-3">
-          <button
-            onClick={handleEmojiClick}
-            className="flex-shrink-0 p-1 rounded-full hover:bg-accent/20 transition-all duration-300 hover:scale-105"
-          >
-            <AnimatedEmoji emoji={notification.emoji} isAnimating={isAnimating} isNew={notification.isNew} />
-          </button>
+        <CardContent className="px-4 py-1 relative z-10">
+          <div className="flex items-start gap-3">
+            <button
+              onClick={handleEmojiClick}
+              className="flex-shrink-0 p-1 rounded-full hover:bg-accent/20 transition-all duration-300 hover:scale-105"
+            >
+              <AnimatedEmoji emoji={notification.emoji} isAnimating={isAnimating} isNew={notification.isNew} />
+            </button>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <p
-                className={`font-bold text-foreground text-base leading-tight text-balance ${notification.isNew ? "animate-pulse-glow" : ""}`}
-              >
-                "{notification.message}"
-              </p>
-              {notification.isNew && (
-                <div className="flex-shrink-0 relative">
-                  <div className="w-3 h-3 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full animate-ping"></div>
-                  <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse delay-300"></div>
-                </div>
-              )}
-            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <p
+                  className={`font-bold text-foreground text-base leading-tight text-balance ${notification.isNew ? "animate-pulse-glow" : ""}`}
+                >
+                  "{notification.message}"
+                </p>
+                {notification.isNew && (
+                  <div className="flex-shrink-0 relative">
+                    <div className="w-3 h-3 bg-gradient-to-r from-pink-500 to-yellow-500 rounded-full animate-ping"></div>
+                    <div className="absolute inset-0 w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse delay-300"></div>
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">@{notification.senderName}</span> さんから
-              </p>
-              <p className="text-sm font-medium text-primary">
-                {notification.courseName} - {notification.examType}
-              </p>
-              <p className="text-xs text-muted-foreground">{notification.timestamp}</p>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">@{notification.senderName}</span> さんから
+                </p>
+                <p className="text-sm font-medium text-primary">
+                  {notification.courseName} - {notification.examType}
+                </p>
+                <p className="text-xs text-muted-foreground">{notification.timestamp}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
 export default function Page() {
   const { currentUser, notifications, markAsRead } = useAppContext()
-  const [animatingId, setAnimatingId] = useState<number | null>(null)
-
-  const receivedNotifications = notifications.filter(n => n.receiverName !== 'user_giver');
   
+  const receivedNotifications = notifications.filter(n => n.receiverName !== 'user_giver');
   const newNotificationCount = receivedNotifications.filter((n) => n.isNew).length
 
-  useEffect(() => {
-    if (currentUser === 'receiver') {
-        const timer = setTimeout(() => {
-            const authorNames = ["yamada_789", "sato_456", "tanaka_123", "suzuki_321", "watanabe_654", "ito_987", "kobayashi_111", "kato_222", "yoshida_333", "sasaki_444"];
-            authorNames.forEach(name => markAsRead(name));
-        }, 2000);
-        return () => clearTimeout(timer);
-    }
-  }, [currentUser, markAsRead, notifications]);
-
-
-  const handleEmojiClick = (id: number) => {
-    setAnimatingId(id)
-    console.log(`Emoji clicked for notification ${id}`)
+  const handleNotificationClick = (id: number) => {
+    markAsRead(id)
   }
 
   if (currentUser === 'giver') {
@@ -160,11 +150,6 @@ export default function Page() {
         <div className="flex items-center justify-center gap-2">
           <Bell className={`h-5 w-5 text-primary ${newNotificationCount > 0 ? "animate-wiggle" : ""}`} />
           <h1 className="text-lg font-bold text-foreground text-balance">感謝の通知</h1>
-          {newNotificationCount > 0 && (
-            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center shadow-lg">
-              {newNotificationCount}
-            </div>
-          )}
         </div>
       </AppHeader>
 
@@ -182,7 +167,7 @@ export default function Page() {
         {receivedNotifications.length > 0 ? (
             <div className="space-y-3 mb-8">
             {receivedNotifications.slice().reverse().map((notification) => (
-                <NotificationCard key={notification.id} notification={notification} onEmojiClick={handleEmojiClick} />
+                <NotificationCard key={notification.id} notification={notification} onCardClick={handleNotificationClick} />
             ))}
             </div>
         ) : (
