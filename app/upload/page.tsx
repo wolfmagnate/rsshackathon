@@ -5,11 +5,12 @@ import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Upload, Image as ImageIcon, Camera } from "lucide-react"
+import { Upload, Image as ImageIcon, Camera, Loader2 } from "lucide-react"
 
 export default function Page() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -33,11 +34,11 @@ export default function Page() {
 
   const handleUpload = async () => {
     if (!file) {
-      // This should not happen if the button is disabled correctly
       alert("アップロードするファイルが選択されていません。")
       return
     }
 
+    setIsUploading(true)
     const formData = new FormData()
     formData.append("file", file)
 
@@ -49,7 +50,6 @@ export default function Page() {
 
       if (response.ok) {
         alert("アップロード成功！")
-        // Reset state after successful upload
         setFile(null)
         setImagePreview(null)
       } else {
@@ -59,6 +59,8 @@ export default function Page() {
     } catch (error) {
       console.error("Upload error:", error)
       alert("アップロード中にエラーが発生しました。")
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -88,11 +90,19 @@ export default function Page() {
               </div>
             )}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" onClick={handleFileSelect}>
+              <Button
+                variant="outline"
+                onClick={handleFileSelect}
+                disabled={isUploading}
+              >
                 <ImageIcon className="mr-2 h-4 w-4" />
                 ギャラリー
               </Button>
-              <Button variant="outline" onClick={handleCameraCapture}>
+              <Button
+                variant="outline"
+                onClick={handleCameraCapture}
+                disabled={isUploading}
+              >
                 <Camera className="mr-2 h-4 w-4" />
                 カメラ
               </Button>
@@ -117,10 +127,14 @@ export default function Page() {
             <Button
               className="w-full"
               onClick={handleUpload}
-              disabled={!file}
+              disabled={!file || isUploading}
             >
-              <Upload className="mr-2 h-4 w-4" />
-              アップロード
+              {isUploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 h-4 w-4" />
+              )}
+              {isUploading ? "アップロード中..." : "アップロード"}
             </Button>
           </CardFooter>
         </Card>
