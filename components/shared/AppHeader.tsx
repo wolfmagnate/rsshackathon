@@ -31,7 +31,7 @@ export default function AppHeader({ className, children }: AppHeaderProps) {
     <header className={cn("sticky top-0 z-50 bg-card border-b border-border shadow-sm", className)}>
       <div className="px-4 py-3 flex items-center justify-between max-w-md mx-auto">
         <div className="flex-1"></div>
-        <div className="flex-1 text-center">{children}</div>
+        <div className="text-center">{children}</div>
         <div className="flex-1 flex justify-end">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
