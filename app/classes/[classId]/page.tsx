@@ -164,13 +164,35 @@ export default function Page({ params }: { params: { classId: string } }) {
 
     console.log(`Download item ${popupState.material.id}`)
     
-    sendThankYou({
+    const notificationPayload = {
         receiverName: popupState.material.author,
+        senderName: "user_giver", // This would be dynamic in a real app
         courseName: examData.courseName,
         examType: `${popupState.year}年 ${popupState.material.semester} ${popupState.material.type === "exam" ? "過去問" : "解答解説"}`,
         emoji,
         message,
+    };
+
+    // Asynchronously process the thank you note via API
+    fetch('/api/thanks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(notificationPayload),
     })
+    .then(res => {
+        if (!res.ok) {
+            console.error("API failed. Falling back to original message.");
+            return Promise.resolve(notificationPayload);
+        }
+        return res.json();
+    })
+    .then(processedData => {
+        sendThankYou(processedData);
+    })
+    .catch(error => {
+        console.error('Fetch failed. Falling back to original message:', error);
+        sendThankYou(notificationPayload);
+    });
   }
 
   const handleClosePopup = () => {
