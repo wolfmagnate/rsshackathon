@@ -19,6 +19,7 @@ const courses = [
   { id: 7, name: "物理学基礎", category: "理学部", instructor: "渡辺教授", examCount: 6 },
   { id: 8, name: "化学実験", category: "理学部", instructor: "中村教授", examCount: 1 },
   { id: 9, name: "生物学概論", category: "理学部", instructor: "小林教授", examCount: 3 },
+  { id: 10, name: "数値解析", category: "情報学科", instructor: "中村教授", examCount: 2 },
 ]
 
 const categories = [
@@ -32,7 +33,7 @@ const categories = [
     id: "cs",
     name: "情報学科",
     icon: Calculator,
-    courses: ["データ構造とアルゴリズム", "プログラミング基礎", "データベース設計"],
+    courses: ["データ構造とアルゴリズム", "プログラミング基礎", "データベース設計", "数値解析"],
   },
   {
     id: "science",

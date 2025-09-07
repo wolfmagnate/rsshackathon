@@ -1,6 +1,13 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from "react"
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from "react"
 
 // Define types
 export type User = "giver" | "receiver"
@@ -17,73 +24,113 @@ export interface Notification {
   isNew: boolean
 }
 
+export interface AnalysisResult {
+  is_exam: boolean
+  metadata: string
+  content: string
+}
+
 interface AppContextState {
   currentUser: User
   switchUser: (user: User) => void
   notifications: Notification[]
-  sendThankYou: (details: Omit<Notification, "id" | "timestamp" | "isNew" | "senderName">) => void
+  sendThankYou: (
+    details: Omit<Notification, "id" | "timestamp" | "isNew" | "senderName">
+  ) => void
   markAsRead: (id: number) => void
+  latestAnalysis: AnalysisResult | null
+  addAnalysisResult: (result: AnalysisResult) => void
 }
 
 // Create Context
 const AppContext = createContext<AppContextState | undefined>(undefined)
 
+// Initial Data
+const initialNotifications: Notification[] = [
+  {
+    id: 1,
+    message: "ありがとう！",
+    emoji: "🙏",
+    senderName: "user_giver",
+    receiverName: "yamada_789",
+    courseName: "データベース設計論",
+    examType: "2023年前期過去問",
+    timestamp: "2時間前",
+    isNew: true,
+  },
+  {
+    id: 2,
+    message: "本当に助かりました！",
+    emoji: "😊",
+    senderName: "user_giver",
+    receiverName: "sato_456",
+    courseName: "アルゴリズム論",
+    examType: "2023年後期解答解説",
+    timestamp: "5時間前",
+    isNew: true,
+  },
+]
+
 // Create Provider
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User>("giver")
-  const [notifications, setNotifications] = useState<Notification[]>([
-      {
-        id: 1,
-        message: "ありがとう！",
-        emoji: "🙏",
-        senderName: "user_giver",
-        receiverName: "yamada_789",
-        courseName: "データベース設計論",
-        examType: "2023年前期過去問",
-        timestamp: "2時間前",
-        isNew: true,
-      },
-      {
-        id: 2,
-        message: "本当に助かりました！",
-        emoji: "😊",
-        senderName: "user_giver",
-        receiverName: "sato_456",
-        courseName: "アルゴリズム論",
-        examType: "2023年後期解答解説",
-        timestamp: "5時間前",
-        isNew: true,
-      },
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>(
+    initialNotifications
+  )
+  const [latestAnalysis, setLatestAnalysis] = useState<AnalysisResult | null>(
+    null
+  )
 
-  const switchUser = (user: User) => {
+  const switchUser = useCallback((user: User) => {
     setCurrentUser(user)
-  }
+  }, [])
 
-  const sendThankYou = (details: Omit<Notification, "id" | "timestamp" | "isNew" | "senderName">) => {
-    const newNotification: Notification = {
-      ...details,
-      id: Date.now(),
-      timestamp: "たった今",
-      isNew: true,
-      senderName: "user_giver",
-    }
-    setNotifications((prev) => [...prev, newNotification])
-  }
-  
-  const markAsRead = (id: number) => {
-      setNotifications(prev => 
-          prev.map(n => n.id === id ? { ...n, isNew: false } : n)
-      )
-  }
+  const sendThankYou = useCallback(
+    (
+      details: Omit<Notification, "id" | "timestamp" | "isNew" | "senderName">
+    ) => {
+      const newNotification: Notification = {
+        ...details,
+        id: Date.now(),
+        timestamp: "たった今",
+        isNew: true,
+        senderName: "user_giver",
+      }
+      setNotifications((prev) => [newNotification, ...prev])
+    },
+    []
+  )
 
-  const value = {
-    currentUser,
-    switchUser,
-    notifications,
-    sendThankYou,
-    markAsRead
-  }
+  const markAsRead = useCallback((id: number) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isNew: false } : n))
+    )
+  }, [])
+
+  const addAnalysisResult = useCallback((result: AnalysisResult) => {
+    setLatestAnalysis(result)
+  }, [])
+
+  const value = useMemo(
+    () => ({
+      currentUser,
+      switchUser,
+      notifications,
+      sendThankYou,
+      markAsRead,
+      latestAnalysis,
+      addAnalysisResult,
+    }),
+    [
+      currentUser,
+      switchUser,
+      notifications,
+      sendThankYou,
+      markAsRead,
+      latestAnalysis,
+      addAnalysisResult,
+    ]
+  )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }

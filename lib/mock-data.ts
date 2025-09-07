@@ -138,4 +138,16 @@ export const allExamsData: AllExamsData = {
         ]},
     ],
   },
+  "10": {
+    courseName: "数値解析",
+    years: [
+      { year: 2023, materials: [
+        { type: "exam", semester: "後期", author: "nakamura_555", id: 1001 },
+        { type: "solution", semester: "後期", author: "yamamoto_666", id: 1002 },
+      ]},
+      { year: 2022, materials: [
+        { type: "exam", semester: "後期", author: "nakamura_555", id: 1003 },
+      ]},
+    ],
+  },
 };
