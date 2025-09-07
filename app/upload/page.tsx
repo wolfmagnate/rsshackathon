@@ -13,6 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Upload, Image as ImageIcon, Camera, Loader2, XCircle, FileText, Book, RefreshCw } from "lucide-react"
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 export default function Page() {
   const { addAnalysisResult } = useAppContext()
@@ -198,9 +201,12 @@ export default function Page() {
                     {analysisResult.metadata}
                   </p>
                   <h3 className="font-bold text-lg mb-2">問題内容</h3>
-                  <pre className="bg-muted p-4 rounded-md whitespace-pre-wrap font-sans text-sm">
-                    {analysisResult.content}
-                  </pre>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {analysisResult.content}
+                    </ReactMarkdown>
                 </div>
               ) : (
                 <p className="text-muted-foreground">
