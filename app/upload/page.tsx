@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useAppContext, AnalysisResult } from "@/context/AppContext"
 import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
 import { Button } from "@/components/ui/button"
@@ -10,17 +11,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card"
 import { Upload, Image as ImageIcon, Camera, Loader2, XCircle, FileText, Book, RefreshCw } from "lucide-react"
 
-interface AnalysisResult {
-  is_exam: boolean
-  metadata: string
-  content: string
-}
-
 export default function Page() {
+  const { addAnalysisResult } = useAppContext()
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -66,12 +61,16 @@ export default function Page() {
         body: formData,
       })
 
-      const result = await response.json()
+      const result: AnalysisResult | { error: string } = await response.json()
 
       if (response.ok) {
-        setAnalysisResult(result)
+        const analysisData = result as AnalysisResult
+        setAnalysisResult(analysisData)
+        if (analysisData.is_exam) {
+          addAnalysisResult(analysisData) // Save to global context
+        }
       } else {
-        setError(result.error || "不明なエラーが発生しました。")
+        setError((result as { error: string }).error || "不明なエラーが発生しました。")
       }
     } catch (err) {
       console.error("Upload error:", err)
@@ -80,12 +79,12 @@ export default function Page() {
       setIsUploading(false)
     }
   }
-  
+
   const handleReset = () => {
-      setFile(null)
-      setImagePreview(null)
-      setAnalysisResult(null)
-      setError(null)
+    setFile(null)
+    setImagePreview(null)
+    setAnalysisResult(null)
+    setError(null)
   }
 
   return (
@@ -160,12 +159,12 @@ export default function Page() {
               )}
               {isUploading ? "解析中..." : "解析を実行"}
             </Button>
-            { (file || analysisResult || error) &&
-                <Button variant="ghost" className="w-full" onClick={handleReset}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    クリア
-                </Button>
-            }
+            {(file || analysisResult || error) && (
+              <Button variant="ghost" className="w-full" onClick={handleReset}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                クリア
+              </Button>
+            )}
           </CardFooter>
         </Card>
 
