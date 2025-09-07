@@ -8,6 +8,7 @@ import AppHeader from "@/components/shared/AppHeader"
 import AppFooter from "@/components/shared/AppFooter"
 import { allExamsData, Material } from "@/lib/mock-data"
 import { useAppContext } from "@/context/AppContext"
+import { ExamContentPopup } from "@/components/shared/ExamContentPopup"
 
 function GratitudePopup({
   isOpen,
@@ -135,7 +136,7 @@ function GratitudePopup({
 export default function Page({ params }: { params: { classId: string } }) {
   const { classId } = params
   const examData = allExamsData[classId as keyof typeof allExamsData]
-  const { currentUser, sendThankYou } = useAppContext()
+  const { currentUser, sendThankYou, latestAnalysis } = useAppContext()
 
   const [popupState, setPopupState] = useState<{
     isOpen: boolean
@@ -145,6 +146,14 @@ export default function Page({ params }: { params: { classId: string } }) {
     isOpen: false,
     material: null,
     year: null,
+  })
+
+  const [examContentPopupState, setExamContentPopupState] = useState<{
+    isOpen: boolean
+    content: string | null
+  }>({
+    isOpen: false,
+    content: null,
   })
 
   const handleOpenPopup = (material: Material, year: number) => {
@@ -188,6 +197,14 @@ export default function Page({ params }: { params: { classId: string } }) {
     })
     .then(processedData => {
         sendThankYou(processedData);
+        if (latestAnalysis && latestAnalysis.is_exam && latestAnalysis.content) {
+          setExamContentPopupState({
+            isOpen: true,
+            content: latestAnalysis.content,
+          });
+        } else {
+            alert("ダウンロードが完了しました。（プレビューするスキャン済みコンテンツがありません）")
+        }
     })
     .catch(error => {
         console.error('Fetch failed. Falling back to original message:', error);
@@ -201,6 +218,10 @@ export default function Page({ params }: { params: { classId: string } }) {
       material: null,
       year: null,
     })
+  }
+
+  const handleCloseExamContentPopup = () => {
+    setExamContentPopupState({ isOpen: false, content: null });
   }
 
   if (!examData) {
@@ -290,6 +311,11 @@ export default function Page({ params }: { params: { classId: string } }) {
         onClose={handleClosePopup}
         authorName={popupState.material?.author || ""}
         onDownload={handleActualDownload}
+      />
+      <ExamContentPopup 
+        isOpen={examContentPopupState.isOpen}
+        onClose={handleCloseExamContentPopup}
+        content={examContentPopupState.content || ""}
       />
       <AppFooter />
     </div>
