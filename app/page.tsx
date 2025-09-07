@@ -97,7 +97,7 @@ export default function HomePage() {
         <h1 className="text-lg font-bold text-center text-balance text-gray-900">過去問解答解説検索</h1>
       </AppHeader>
 
-      <div className="px-4 py-6 max-w-md mx-auto">
+      <div className="px-4 py-6 max-w-md mx-auto pb-24">
         {/* Search Section */}
         <div className="relative mb-6">
           <div className="relative">

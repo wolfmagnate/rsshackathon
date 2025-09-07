@@ -95,7 +95,7 @@ export default function Page() {
           <h1 className="text-lg font-bold text-foreground">試験問題スキャナー</h1>
         </div>
       </AppHeader>
-      <main className="flex-1 px-4 py-6 max-w-2xl mx-auto w-full space-y-6">
+      <main className="flex-1 px-4 py-6 max-w-2xl mx-auto w-full space-y-6 pb-24">
         <Card>
           <CardContent className="p-6">
             {imagePreview ? (

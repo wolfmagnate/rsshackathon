@@ -225,7 +225,7 @@ export default function Page({ params }: { params: { classId: string } }) {
         <h1 className="text-lg font-bold text-center text-balance text-gray-900">過去問解答解説検索</h1>
       </AppHeader>
 
-      <main className="px-4 py-6 max-w-md mx-auto">
+      <main className="px-4 py-6 max-w-md mx-auto pb-24">
         <div className="mb-6">
           <h2 className="text-xl font-bold text-foreground mb-2 text-balance">{examData.courseName}</h2>
           <div className="h-1 w-16 bg-green-500 rounded-full"></div>

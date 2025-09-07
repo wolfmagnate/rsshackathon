@@ -132,7 +132,7 @@ export default function Page() {
                       <h1 className="text-lg font-bold text-foreground text-balance">感謝の通知</h1>
                   </div>
               </AppHeader>
-              <main className="flex-1 px-4 py-6 max-w-md mx-auto pb-20 flex flex-col items-center justify-center text-center">
+              <main className="flex-1 px-4 py-6 max-w-md mx-auto pb-24 flex flex-col items-center justify-center text-center">
                   <UserCheck className="h-16 w-16 text-muted-foreground mb-4" />
                   <h2 className="text-xl font-semibold text-foreground mb-2">通知はありません</h2>
                   <p className="text-muted-foreground text-balance">
