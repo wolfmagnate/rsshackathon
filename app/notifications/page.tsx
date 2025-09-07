@@ -60,7 +60,7 @@ function NotificationCard({
       <Card
         className={`
           hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary relative overflow-hidden
-          ${notification.isNew ? "animate-shimmer bg-gradient-to-r from-background via-primary/5 to-background bg-[length:200%_100%]" : ""}
+          ${notification.isNew ? "animate-shimmer bg-gradient-to-r from-background via-primary/15 to-background bg-[length:200%_100%]" : "bg-white"}
         `}
         style={{
           boxShadow: notification.isNew
